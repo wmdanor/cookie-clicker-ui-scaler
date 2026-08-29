@@ -24,6 +24,8 @@ class UIScaler {
 		this.maxScale = 300;
 		/** @type {number} Scale adjustment size in percentage points. */
 		this.step = 25;
+		/** @type {string} Machine-local storage key. */
+		this.storageKey = 'UI_Scaler.scale';
 		/** @type {string} Loaded Options menu HTML template. */
 		this.optionsTemplate = '';
 		/** @type {number|null} Pending layout refresh animation frame. */
@@ -44,9 +46,31 @@ class UIScaler {
 
 	/** @returns {void} */
 	init() {
+		this.scale = this.readLocalScale();
 		this.applyScale();
 		this.loadOptionsTemplate();
 		this.registerEventListeners();
+	}
+
+	/** @returns {number} */
+	readLocalScale() {
+		try {
+			const storedScale = window.localStorage.getItem(this.storageKey);
+			return storedScale === null ? this.defaultScale : this.clampScale(storedScale);
+		}
+		catch {
+			return this.defaultScale;
+		}
+	}
+
+	/** @returns {void} */
+	writeLocalScale() {
+		try {
+			window.localStorage.setItem(this.storageKey, String(this.scale));
+		}
+		catch {
+			console.error('UI Scaler could not save its local setting.');
+		}
 	}
 
 	/** @returns {void} */
@@ -219,7 +243,7 @@ class UIScaler {
 		this.applyScale();
 		this.updateOptionsUI();
 
-		if (persist) Game.toSave = true;
+		if (persist) this.writeLocalScale();
 	}
 
 	/**
@@ -286,22 +310,11 @@ class UIScaler {
 
 	/** @returns {string} */
 	save() {
-		return JSON.stringify({ scale: this.scale });
+		return '';
 	}
 
-	/**
-	 * @param {string} savedData
-	 * @returns {void}
-	 */
-	load(savedData) {
-		try {
-			const scale = JSON.parse(savedData)?.scale ?? this.defaultScale;
-			this.setScale(scale, false);
-		}
-		catch {
-			this.setScale(this.defaultScale, false);
-		}
-	}
+	/** @returns {void} */
+	load() {}
 }
 
 Game.registerMod('UI_Scaler', new UIScaler());
