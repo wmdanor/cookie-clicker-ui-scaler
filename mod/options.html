@@ -1,0 +1,18 @@
+<div class="block" id="uiScaleModOptions" style="padding:0px;margin:8px 4px;">
+	<div class="subsection" style="padding:0px;">
+		<div class="title">UI Scale</div>
+		<div class="listing" style="display:flex;align-items:stretch;gap:4px;width:300px;max-width:100%;">
+			<a class="option smallFancyButton" id="uiScaleDecrease" style="display:flex;align-items:center;justify-content:center;width:24px;min-width:24px;text-align:center;margin:0;">-</a>
+			<div class="sliderBox" style="flex:1;width:auto;margin:0;">
+				<div style="float:left;" class="smallFancyButton">UI scale</div>
+				<div style="float:right;" class="smallFancyButton" id="uiScaleSliderRightText">{{scale}}%</div>
+				<input class="slider" style="clear:both;" type="range" min="{{minScale}}" max="{{maxScale}}" step="{{step}}" value="{{scale}}" id="uiScaleSlider">
+			</div>
+			<a class="option smallFancyButton" id="uiScaleIncrease" style="display:flex;align-items:center;justify-content:center;width:24px;min-width:24px;text-align:center;margin:0;">+</a>
+		</div>
+		<div class="listing">
+			<a class="option smallFancyButton" id="uiScaleReset" style="text-align:center;">Reset to {{defaultScale}}%</a>
+			<label>Ctrl +/- changes scale; Ctrl+0 resets to 100%.</label>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,12 @@
+{
+	"Name": "UI Scaler",
+	"ID": "UI_Scaler",
+	"Author": "darklumination",
+	"Description": "Mod that let's you scale UI, primarily for bigger resolution screens, e.g. 4K",
+	"ModVersion": 1,
+	"GameVersion": 2.053,
+	"Date": "29/08/2026",
+	"Dependencies": [],
+	"Disabled": 1,
+	"AllowSteamAchievs": 1
+}
