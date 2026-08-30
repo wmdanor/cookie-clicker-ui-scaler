@@ -10,6 +10,14 @@
  * @property {(event: MouseEvent) => void} increaseClick
  */
 
+/**
+ * @typedef {Object} CookieClickerTooltip
+ * @property {string} origin
+ * @property {HTMLElement} tt
+ * @property {HTMLElement} tta
+ * @property {(...args: unknown[]) => unknown} update
+ */
+
 class UIScaler {
 	constructor() {
 		/** @type {string} Directory injected by Cookie Clicker's Steam bridge. */
@@ -30,6 +38,8 @@ class UIScaler {
 		this.optionsTemplate = '';
 		/** @type {number|null} Pending layout refresh animation frame. */
 		this.resizeFrame = null;
+		/** @type {boolean} Whether the store tooltip position fix is installed. */
+		this.storeTooltipFixInstalled = false;
 
 		/** @type {UIScalerHandlers} */
 		this.handlers = {
@@ -48,8 +58,54 @@ class UIScaler {
 	init() {
 		this.scale = this.readLocalScale();
 		this.applyScale();
+		this.installStoreTooltipPositionFix();
 		this.loadOptionsTemplate();
 		this.registerEventListeners();
+	}
+
+	/** @returns {void} */
+	installStoreTooltipPositionFix() {
+		if (this.storeTooltipFixInstalled) return;
+
+		const originalUpdate = Game.tooltip.update;
+
+		Game.tooltip.update = (...args) => {
+			const result = originalUpdate.apply(Game.tooltip, args);
+			this.correctStoreTooltipPosition(Game.tooltip);
+
+			return result;
+		};
+
+		this.storeTooltipFixInstalled = true;
+	}
+
+	/**
+	 * Cookie Clicker anchors store tooltips from Game.windowW and positions
+	 * building tooltips from Game.mouseY. Body zoom does not change those values,
+	 * so convert them into the body's logical coordinate space.
+	 *
+	 * @param {CookieClickerTooltip} tooltip
+	 * @returns {void}
+	 */
+	correctStoreTooltipPosition(tooltip) {
+		const zoom = this.scale / 100;
+		if (tooltip.origin !== 'store' || zoom === 1) return;
+
+		const currentLeft = Number.parseFloat(tooltip.tta.style.left);
+		if (!Number.isFinite(currentLeft)) return;
+
+		const viewportCorrection = Game.windowW / zoom - Game.windowW;
+		tooltip.tta.style.left = `${currentLeft + viewportCorrection}px`;
+
+		// Upgrade tooltips use their crate bounds and do not need this correction.
+		if (Game.onCrate) return;
+
+		const logicalMouseY = Game.mouseY / zoom;
+		const logicalWindowHeight = Game.windowH / zoom;
+		const maxTop = logicalWindowHeight - tooltip.tt.offsetHeight - 44;
+		const top = Math.max(0, Math.min(maxTop, logicalMouseY - 32));
+
+		tooltip.tta.style.top = `${top}px`;
 	}
 
 	/** @returns {number} */
