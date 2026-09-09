@@ -122,6 +122,18 @@ same hover state and tooltip.
 This fixes the confirmed missing graph-line tooltips and keeps the correction
 limited to the Stock Market canvas.
 
+### Grandma and You building-canvas hover checks
+
+Cookie Clicker records the pointer's distance from a building canvas by mixing
+page coordinates with element bounds, then compares that value with sprite
+positions in the canvas's logical coordinate space. UI Scaler adds a later
+mouse listener only to the Grandma and You canvases. It replaces the mixed
+coordinate with the event's canvas-local position converted for CSS zoom.
+
+This fixes Grandma name and age labels selecting a character far from the
+pointer. The same correction covers the equivalent hover path in the You
+building canvas.
+
 ## Observed working without another fix
 
 These paths have been checked in practice and should not be treated as known
@@ -191,12 +203,6 @@ different effective width, even though individual elements are scaled.
 
 ### Lower likelihood or limited impact
 
-#### Grandma and You building-canvas hover checks
-
-Some building visuals perform mouse tests against positions calculated inside
-their canvas. These paths may have the same viewport-versus-canvas mismatch as
-wrinklers, but their impact is smaller and has not been observed.
-
 #### Debug tools and ascension editor
 
 Cookie Clicker's debug toys and ascension-tree editor contain direct mouse and
@@ -227,6 +233,9 @@ uses Cookie Clicker's functions or its own positioning code.
   conversion.
 - The Stock Market's `layerX`/`layerY` values carry the CSS zoom multiplier
   while the graph data is represented in logical canvas coordinates.
+- The Grandma and You building-canvas `layerX`/`layerY` values carry the CSS
+  zoom multiplier, while their sprite positions remain in logical canvas
+  coordinates.
 - Cookie Clicker's small randomized click-number offset and fixed dragon-pet
   offset remain the same as in 2.053.
 - Temporarily replacing global coordinate values is safe because each original

@@ -123,6 +123,17 @@ Scales: cycle 100% -> 150% -> 50% -> 300% -> 100% at least three times.
 Pass condition: corrections are not applied multiple times, no event handler is
 duplicated, and the final 100% positions match the initial 100% positions.
 
+#### Q-11: Grandma and You canvas hover behavior
+
+Scales: 50%, 100%, 150%, and 300%.
+
+- [ ] Move the pointer slowly across the Grandma building canvas and confirm
+      each name label points to the visible grandma under the pointer.
+- [ ] Repeat on the You building canvas when unlocked.
+
+Pass condition: hover feedback matches the visible canvas object under the
+pointer at every scale.
+
 ### Extended compatibility test
 
 These cases cover code paths identified as potentially sensitive to CSS zoom.
@@ -220,14 +231,3 @@ Scales: 50%, 100%, 150%, and 300%.
 
 Pass condition: graph hover feedback and values correspond to the point under
 the pointer.
-
-#### E-09: Grandma and You canvas hover behavior
-
-Scales: 50%, 100%, 150%, and 300%.
-
-- [ ] Move the pointer slowly across the Grandma building canvas.
-- [ ] Repeat on the You building canvas when unlocked.
-- [ ] Note any visual response, pointer change, or clickable sub-element.
-
-Pass condition: any hover or click response matches the visible canvas object
-under the pointer.

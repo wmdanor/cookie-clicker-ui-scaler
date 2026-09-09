@@ -9,6 +9,7 @@
  * @property {(event: MouseEvent) => void} resetClick
  * @property {(event: MouseEvent) => void} increaseClick
  * @property {(event: MouseEvent) => void} marketGraphMouseMove
+ * @property {(event: MouseEvent) => void} buildingCanvasMouseMove
  */
 
 /**
@@ -51,6 +52,10 @@ class UIScaler {
 		this.positionFixedGardens = new WeakSet();
 		/** @type {WeakSet<object>} Pantheon minigames with corrected draw coordinates. */
 		this.positionFixedPantheons = new WeakSet();
+		/** @type {WeakSet<HTMLCanvasElement>} Building canvases with corrected hover coordinates. */
+		this.positionFixedBuildingCanvases = new WeakSet();
+		/** @type {WeakMap<HTMLCanvasElement, {mousePos: number[]}>} Building associated with each canvas. */
+		this.buildingsByCanvas = new WeakMap();
 
 		/** @type {UIScalerHandlers} */
 		this.handlers = {
@@ -62,7 +67,8 @@ class UIScaler {
 			decreaseClick: this.handleDecreaseClick.bind(this),
 			resetClick: this.handleResetClick.bind(this),
 			increaseClick: this.handleIncreaseClick.bind(this),
-			marketGraphMouseMove: this.handleMarketGraphMouseMove.bind(this)
+			marketGraphMouseMove: this.handleMarketGraphMouseMove.bind(this),
+			buildingCanvasMouseMove: this.handleBuildingCanvasMouseMove.bind(this)
 		};
 	}
 
@@ -73,6 +79,7 @@ class UIScaler {
 		this.installTooltipPositionFix();
 		this.installPromptPositionFix();
 		this.installVisualEffectPositionFix();
+		this.installBuildingCanvasPositionFixes();
 		this.installLoadedMinigamePositionFixes();
 		this.stabilizeLegacyTooltipPainting();
 		this.clearPositionDiagnostics();
@@ -392,6 +399,41 @@ class UIScaler {
 		if (farm.minigame) this.installGardenPositionFix(farm.minigame);
 		if (temple.minigame) this.installPantheonPositionFix(temple.minigame);
 		if (bank.minigame && bank.minigame.graph) this.installMarketGraphPositionFix(bank.minigame.graph);
+	}
+
+	/** @returns {void} */
+	installBuildingCanvasPositionFixes() {
+		this.installBuildingCanvasPositionFix(Game.Objects['Grandma']);
+		this.installBuildingCanvasPositionFix(Game.Objects['You']);
+	}
+
+	/**
+	 * Cookie Clicker's listener mixes page coordinates with element bounds. Add a
+	 * later listener that uses coordinates local to the canvas instead.
+	 *
+	 * @param {{canvas: HTMLCanvasElement, mousePos: number[]}|undefined} building
+	 * @returns {void}
+	 */
+	installBuildingCanvasPositionFix(building) {
+		if (!building || this.positionFixedBuildingCanvases.has(building.canvas)) return;
+
+		this.buildingsByCanvas.set(building.canvas, building);
+		building.canvas.addEventListener('mousemove', this.handlers.buildingCanvasMouseMove);
+		this.positionFixedBuildingCanvases.add(building.canvas);
+	}
+
+	/**
+	 * @param {MouseEvent} event
+	 * @returns {void}
+	 */
+	handleBuildingCanvasMouseMove(event) {
+		const canvas = /** @type {HTMLCanvasElement} */ (event.currentTarget);
+		const building = this.buildingsByCanvas.get(canvas);
+		if (!building) return;
+
+		const zoom = this.scale / 100;
+		building.mousePos[0] = event.layerX / zoom;
+		building.mousePos[1] = event.layerY / zoom;
 	}
 
 	/**
