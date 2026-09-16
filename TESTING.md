@@ -134,6 +134,17 @@ Scales: 50%, 100%, 150%, and 300%.
 Pass condition: hover feedback matches the visible canvas object under the
 pointer at every scale.
 
+#### Q-12: Wrinkler hit testing
+
+Scales: 50%, 100%, 150%, and 300%.
+
+- [ ] Hover the center and edge of several wrinklers.
+- [ ] Move the pointer just outside them and confirm the hover ends.
+- [ ] Pop a wrinkler and observe its popup and particles.
+
+Pass condition: the hover/click area matches the visible wrinkler and its
+effects originate from the expected position.
+
 ### Extended compatibility test
 
 These cases cover code paths identified as potentially sensitive to CSS zoom.
@@ -152,17 +163,6 @@ Scales: 50%, 100%, 150%, and 300%.
 Pass condition: the map starts centered, remains under the pointer while
 dragging, does not jump on mouse-down, and moves the same perceived distance as
 the pointer.
-
-#### E-02: Wrinkler hit testing
-
-Scales: 50%, 100%, 150%, and 300%.
-
-- [ ] Hover the center and edge of several wrinklers.
-- [ ] Move the pointer just outside them and confirm the hover ends.
-- [ ] Pop a wrinkler and observe its popup and particles.
-
-Pass condition: the hover/click area matches the visible wrinkler and its
-effects originate from the expected position.
 
 #### E-03: Santa and dragon interaction
 

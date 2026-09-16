@@ -46,6 +46,10 @@ class UIScaler {
 		this.promptPositionFixInstalled = false;
 		/** @type {boolean} Whether the visual effect position fix is installed. */
 		this.visualEffectPositionFixInstalled = false;
+		/** @type {boolean} Whether the wrinkler hit-test fix is installed. */
+		this.wrinklerPositionFixInstalled = false;
+		/** @type {number} Depth of callbacks using logical global mouse coordinates. */
+		this.logicalMouseCoordinateDepth = 0;
 		/** @type {WeakSet<HTMLCanvasElement>} Stock Market graphs with corrected pointer coordinates. */
 		this.positionFixedMarketGraphs = new WeakSet();
 		/** @type {WeakSet<object>} Garden minigames with corrected draw coordinates. */
@@ -79,6 +83,7 @@ class UIScaler {
 		this.installTooltipPositionFix();
 		this.installPromptPositionFix();
 		this.installVisualEffectPositionFix();
+		this.installWrinklerPositionFix();
 		this.installBuildingCanvasPositionFixes();
 		this.installLoadedMinigamePositionFixes();
 		this.stabilizeLegacyTooltipPainting();
@@ -221,18 +226,20 @@ class UIScaler {
 		Game.Popup = (text, x, y) => {
 			if (!this.isCurrentMousePosition(x, y)) return originalPopup.call(Game, text, x, y);
 
-			[x, y] = this.toLogicalMousePosition(x, y);
+			if (!this.areGameMouseCoordinatesLogical()) [x, y] = this.toLogicalMousePosition(x, y);
 
 			return this.withLogicalGameBounds(() => originalPopup.call(Game, text, x, y));
 		};
 
 		Game.SparkleAt = (x, y) => {
-			if (this.isCurrentMousePosition(x, y)) [x, y] = this.toLogicalMousePosition(x, y);
+			if (this.isCurrentMousePosition(x, y) && !this.areGameMouseCoordinatesLogical()) {
+				[x, y] = this.toLogicalMousePosition(x, y);
+			}
 			return originalSparkleAt.call(Game, x, y);
 		};
 
 		Game.particleAdd = (x, y, xd, yd, size, duration, layer, picture, text) => {
-			if (this.isMouseAnchoredParticle(x, y, text)) {
+			if (this.isMouseAnchoredParticle(x, y, text) && !this.areGameMouseCoordinatesLogical()) {
 				[x, y] = this.toLogicalMousePosition(x, y);
 			}
 
@@ -251,6 +258,24 @@ class UIScaler {
 		};
 
 		this.visualEffectPositionFixInstalled = true;
+	}
+
+	/** @returns {boolean} */
+	areGameMouseCoordinatesLogical() {
+		return this.logicalMouseCoordinateDepth > 0;
+	}
+
+	/** @returns {void} */
+	installWrinklerPositionFix() {
+		if (this.wrinklerPositionFixInstalled) return;
+
+		const uiScaler = this;
+		const originalUpdateWrinklers = Game.UpdateWrinklers;
+		Game.UpdateWrinklers = function (...args) {
+			return uiScaler.withLogicalMouseCoordinates(() => originalUpdateWrinklers.apply(this, args));
+		};
+
+		this.wrinklerPositionFixInstalled = true;
 	}
 
 	/**
@@ -472,17 +497,19 @@ class UIScaler {
 	 */
 	withLogicalMouseCoordinates(callback) {
 		const zoom = this.scale / 100;
-		if (zoom === 1) return callback();
+		if (zoom === 1 || this.areGameMouseCoordinatesLogical()) return callback();
 
 		const originalMouseX = Game.mouseX;
 		const originalMouseY = Game.mouseY;
 		Game.mouseX /= zoom;
 		Game.mouseY /= zoom;
+		this.logicalMouseCoordinateDepth++;
 
 		try {
 			return callback();
 		}
 		finally {
+			this.logicalMouseCoordinateDepth--;
 			Game.mouseX = originalMouseX;
 			Game.mouseY = originalMouseY;
 		}

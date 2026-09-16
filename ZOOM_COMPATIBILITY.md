@@ -134,6 +134,18 @@ This fixes Grandma name and age labels selecting a character far from the
 pointer. The same correction covers the equivalent hover path in the You
 building canvas.
 
+### Wrinkler mouse hit testing
+
+Wrinklers are positioned and drawn in the left canvas's logical coordinate
+space, but Cookie Clicker tests them against the viewport-oriented
+`Game.mouseX`/`Game.mouseY`. UI Scaler wraps `Game.UpdateWrinklers` and
+temporarily converts only those global mouse coordinates for the synchronous
+update.
+
+This fixes wrinklers highlighting and popping at a position offset from their
+visible bodies. Mouse-anchored popup and particle corrections recognize the
+temporary logical-coordinate context so they are not converted twice.
+
 ## Observed working without another fix
 
 These paths have been checked in practice and should not be treated as known
@@ -162,15 +174,6 @@ transform may therefore disagree under CSS zoom.
 
 Possible symptoms include an off-center heavenly-upgrade tree, incorrect drag
 speed, or the map jumping when dragging begins.
-
-#### Wrinkler mouse hit testing
-
-Wrinklers are drawn in the left-side canvas, while their hover/click tests
-compare canvas positions with `Game.mouseX`/`Game.mouseY`. CSS zoom can make
-those coordinate spaces differ.
-
-Possible symptoms include wrinklers highlighting or popping only when the
-pointer is offset from their visible position.
 
 #### Santa and dragon special-tab hit testing
 
@@ -236,6 +239,8 @@ uses Cookie Clicker's functions or its own positioning code.
 - The Grandma and You building-canvas `layerX`/`layerY` values carry the CSS
   zoom multiplier, while their sprite positions remain in logical canvas
   coordinates.
+- `Game.UpdateWrinklers` completes synchronously, and its wrinkler positions
+  use the same logical coordinate space as the left canvas.
 - Cookie Clicker's small randomized click-number offset and fixed dragon-pet
   offset remain the same as in 2.053.
 - Temporarily replacing global coordinate values is safe because each original
